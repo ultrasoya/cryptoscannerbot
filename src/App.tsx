@@ -4,19 +4,31 @@ import { WagmiProvider } from 'wagmi';
 import { walletConfig } from './config';
 import { BalanceOfWallet, ConnectButtonWrapper } from './components';
 import { RainbowKitProvider } from '@rainbow-me/rainbowkit';
+import type { Telegram } from "@twa-dev/types";
 
-const VITALIK_ADDRESS = '0xd8da6bf26964af9d7eed9e03e53415d37aa96045';
+declare global {
+  interface Window {
+    Telegram: Telegram;
+  }
+}
 
 function App() {
-
   const queryClient = new QueryClient();
+
+  const tgUser = window?.Telegram?.WebApp?.initDataUnsafe?.user;
+  const tgId = tgUser?.id;
+
+
+  if (!tgId) {
+    return <div>Error: Telegram ID is not found</div>;
+  }
 
   return (
     <WagmiProvider config={walletConfig}>
       <QueryClientProvider client={queryClient}>
         <RainbowKitProvider>
-          <ConnectButtonWrapper />
-          <BalanceOfWallet address={VITALIK_ADDRESS} />
+          <ConnectButtonWrapper tgId={tgId} />
+          <BalanceOfWallet />
         </RainbowKitProvider>
       </QueryClientProvider>
     </WagmiProvider>

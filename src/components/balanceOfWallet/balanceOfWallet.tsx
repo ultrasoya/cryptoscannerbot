@@ -1,14 +1,22 @@
 import { useState, useEffect } from 'react'
 import { fetchBalance } from '../../utils';
-import { formatEther } from 'viem';
+import { formatEther, isAddress } from 'viem';
+import { useAccount } from 'wagmi';
 
-export const BalanceOfWallet = ({ address }: { address: string }) => {
+export const BalanceOfWallet = () => {
   const [balance, setBalance] = useState<string>('Загрузка...');
+
+  const { address, isConnected } = useAccount();
 
   useEffect(() => {
     const getBalance = async () => {
+      if (!isConnected || !address) {
+        setBalance('Wallet is not connected');
+        return;
+      }
+
       try {
-        // const address = '0xd8da6bf26964af9d7eed9e03e53415d37aa96045';
+        
         const rawBalance = await fetchBalance(address);
         const balance = formatEther(rawBalance);
         setBalance(balance);
@@ -19,13 +27,13 @@ export const BalanceOfWallet = ({ address }: { address: string }) => {
     };
 
     getBalance();
-  }, []);
+  }, [address, isConnected]);
 
   return (
     <>
       <div style={{ padding: '20px', textAlign: 'center' }}>
-        <h1>My Web3 TWA</h1>
-        <p>Баланс Виталика: {balance} ETH</p>
+        <h1>CryptoScanner</h1>
+        <p>Your balance: {balance} ETH</p>
       </div>
     </>
   )
