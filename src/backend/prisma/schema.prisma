@@ -13,3 +13,30 @@ model User {
   createdAt DateTime @default(now())
   updatedAt DateTime @default(now()) @updatedAt
 }
+
+enum Chain {
+  ETH
+  BSC
+  SOLANA
+  POLYGON
+}
+
+enum AlertCondition {
+  ABOVE
+  BELOW
+}
+
+model Alert {
+  id String @id @default(cuid())
+  telegramId String
+  chain Chain @default(ETH)
+  tokenAddress String 
+  symbol String? 
+  targetPrice Float
+  condition AlertCondition
+  isActive Boolean @default(true)
+  lastTriggered DateTime?
+  createdAt DateTime @default(now())
+
+  @@index([tokenAddress, isActive])
+}

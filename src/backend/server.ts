@@ -1,6 +1,9 @@
 import express, { type Request, type Response } from "express";
 import { isAddress } from 'viem'
 import cors from 'cors';
+import { Bot } from "grammy";
+import { createPriceWorker } from "./src/queues/price.worker.js";
+import { schedulePriceChecks } from "./src/services/sheduler.service.js";
 import rateLimit from 'express-rate-limit';
 
 import { prisma } from "./prisma/index.js";
@@ -8,18 +11,23 @@ import type { ConnectWalletRequest } from "./src/types/index.js";
 
 const app = express();
 
+const bot = new Bot(process.env.BOT_TOKEN || '');
+
+const priceWorker = createPriceWorker(bot);
+console.log('✅ BullMQ worker started');
+
 // Trust proxy - нужно для работы за туннелем/прокси (localhost.run)
 app.set('trust proxy', 1);
 
 app.use(express.json());
 
 // Глобальная сериализация BigInt в JSON
-(BigInt.prototype as any).toJSON = function() {
+BigInt.prototype.toJSON = function () {
     return this.toString();
 };
 
 // Логирование всех запросов
-app.use((req, res, next) => {
+app.use((req, _res, next) => {
     console.log('📩 Incoming request:', {
         method: req.method,
         path: req.path,
@@ -36,8 +44,8 @@ app.use(cors({
             'http://localhost:5173',
             /^https:\/\/.*\.lhr\.life$/
         ];
-        
-        if (!origin || allowedOrigins.some(allowed => 
+
+        if (!origin || allowedOrigins.some(allowed =>
             typeof allowed === 'string' ? allowed === origin : allowed.test(origin)
         )) {
             console.log('✅ CORS allowed for origin:', origin);
@@ -69,9 +77,9 @@ app.post('/api/connect-wallet', async (req: Request, res: Response) => {
 
         if (!isAddress(wallet)) {
             console.log('❌ Validation failed: Invalid wallet address:', wallet);
-            return res.status(400).json({ 
-                success: false, 
-                error: "Invalid wallet address" 
+            return res.status(400).json({
+                success: false,
+                error: "Invalid wallet address"
             });
         }
 
@@ -98,7 +106,26 @@ app.post('/api/connect-wallet', async (req: Request, res: Response) => {
     }
 });
 
-
 app.listen(3000, () => {
-    console.log("Backend is running on port 3000");
-});
+    console.log('Backend is running on port 3000');
+
+    setInterval(async () => {
+        try {
+            await schedulePriceChecks();
+        } catch (error) {
+            console.log('[Scheduler] Error:', error);
+        }
+    }, 60000)
+})
+
+process.on('SIGTERM', async () => {
+    console.log('SIGTERM received, closing worker...');
+    await priceWorker.close();
+    process.exit(0);
+})
+
+process.on('SIGINT', async () => {
+    console.log('SIGINT received, closing worker...');
+    await priceWorker.close();
+    process.exit(0);
+})
