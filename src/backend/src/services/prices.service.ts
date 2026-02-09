@@ -16,6 +16,32 @@ export class PriceService {
         }
     }
 
+    async getChainPrice(chain: string): Promise<number | null> {
+        try {
+            const platform = this.mapChainToPlatform(chain);
+            const url = `${this.baseUrl}/simple/price?ids=${platform}&vs_currencies=usd`;
+
+            const { data } = await axios.get(url);
+            return data[platform.toLowerCase()]?.usd || null;
+        } catch (error) {
+            console.error('Price fetch error:', error);
+            return null;
+        }
+    }
+
+    async getPrice(chain: string, tokenAddress?: string): Promise<number | null> {
+        try {
+            if (!tokenAddress) {
+                return this.getChainPrice(chain);
+            } else {
+                return this.getTokenPrice(chain, tokenAddress);
+            }
+        } catch (error) {
+            console.error('Price fetch error:', error);
+            return null;
+        }
+    }
+
     private mapChainToPlatform(chain: string): string {
         const mapping: Record<string, string> = {
             ETH: 'ethereum',

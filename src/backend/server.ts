@@ -1,9 +1,9 @@
 import express, { type Request, type Response } from "express";
 import { isAddress } from 'viem'
 import cors from 'cors';
-import { Bot } from "grammy";
 import { createPriceWorker } from "./src/queues/price.worker.js";
 import { schedulePriceChecks } from "./src/services/sheduler.service.js";
+import { bot } from "./src/bot/bot.js";
 import rateLimit from 'express-rate-limit';
 
 import { prisma } from "./prisma/index.js";
@@ -11,10 +11,11 @@ import type { ConnectWalletRequest } from "./src/types/index.js";
 
 const app = express();
 
-const bot = new Bot(process.env.BOT_TOKEN || '');
-
 const priceWorker = createPriceWorker(bot);
 console.log('✅ BullMQ worker started');
+
+bot.start();
+console.log('✅ Telegram bot started');
 
 // Trust proxy - нужно для работы за туннелем/прокси (localhost.run)
 app.set('trust proxy', 1);
@@ -121,11 +122,13 @@ app.listen(3000, () => {
 process.on('SIGTERM', async () => {
     console.log('SIGTERM received, closing worker...');
     await priceWorker.close();
+    await bot.stop();
     process.exit(0);
 })
 
 process.on('SIGINT', async () => {
     console.log('SIGINT received, closing worker...');
     await priceWorker.close();
+    await bot.stop();
     process.exit(0);
 })

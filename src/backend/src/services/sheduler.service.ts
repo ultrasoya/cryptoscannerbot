@@ -1,7 +1,5 @@
-import { PrismaClient } from "@prisma/client";
 import { priceQueue } from "../queues/config.js";
-
-const prisma = new PrismaClient();
+import prisma from "../../prisma/prisma.js";
 
 export const schedulePriceChecks = async () => {
     const activeAlerts = await prisma.alert.findMany({

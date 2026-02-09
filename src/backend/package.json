@@ -4,6 +4,9 @@
   "type": "module",
   "main": "index.js",
   "scripts": {
+    "dev": "tsx watch server.ts",
+    "start": "tsx server.ts",
+    "build": "tsc",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "keywords": [],
@@ -27,6 +30,7 @@
     "bullmq": "^5.66.5",
     "cors": "^2.8.5",
     "dotenv": "^17.2.3",
+    "ethers": "^6.16.0",
     "express": "^5.2.1",
     "express-rate-limit": "^8.2.1",
     "grammy": "^1.39.2",

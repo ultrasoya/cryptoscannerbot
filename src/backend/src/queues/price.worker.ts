@@ -1,10 +1,9 @@
 import { Worker, Job } from 'bullmq';
-import { PrismaClient } from '@prisma/client';
 import { PriceService } from '../services/prices.service.js';
+import prisma from '../../prisma/prisma.js';
 import { Bot } from 'grammy';
 import { connection, PRICE_CHECK_QUEUE } from './config.js';
 
-const prisma = new PrismaClient();
 const priceService = new PriceService();
 
 export const createPriceWorker = (bot: Bot) => {
@@ -19,7 +18,7 @@ export const createPriceWorker = (bot: Bot) => {
 
             if (!alert) return;
 
-            const currentPrice = await priceService.getTokenPrice(alert.chain, alert.tokenAddress);
+            const currentPrice = await priceService.getPrice(alert.chain, alert.tokenAddress);
             if (!currentPrice) throw new Error(`Could not fetch price ${alert.tokenAddress}`);
 
             const isTriggered = (alert.condition === 'ABOVE' && currentPrice >= alert.targetPrice) ||
