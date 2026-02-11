@@ -1,73 +1,118 @@
-# React + TypeScript + Vite
+# Crypto Scanner Bot
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+A Telegram bot that monitors cryptocurrency prices and sends real-time alerts when your target conditions are met.
 
-Currently, two official plugins are available:
+## Key Features
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Babel](https://babeljs.io/) (or [oxc](https://oxc.rs) when used in [rolldown-vite](https://vite.dev/guide/rolldown)) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
+- **Multi-chain Support** - Track tokens across Ethereum, BSC, Solana, and Polygon networks
+- **Price Alerts** - Set custom alerts for price going above or below your target
+- **Real-time Monitoring** - Powered by BullMQ job queues for efficient price tracking
+- **Native & Token Support** - Monitor both native coins (ETH, BNB, SOL) and ERC20/BEP20 tokens
 
-## React Compiler
+## Stack
 
-The React Compiler is currently not compatible with SWC. See [this issue](https://github.com/vitejs/vite-plugin-react/issues/428) for tracking the progress.
+**Backend**
+- Node.js + Express
+- Grammy (Telegram Bot Framework)
+- Prisma + PostgreSQL
+- BullMQ + Redis
+- Viem + Ethers.js
 
-## Expanding the ESLint configuration
+**Frontend**
+- React + TypeScript
+- Vite
+- RainbowKit + Wagmi
+- Telegram Mini Apps
 
-If you are developing a production application, we recommend updating the configuration to enable type-aware lint rules:
+**Infrastructure**
+- Docker + Docker Compose
+- PostgreSQL 15
+- Redis 7
 
-```js
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
+## Quick Start
 
-      // Remove tseslint.configs.recommended and replace with this
-      tseslint.configs.recommendedTypeChecked,
-      // Alternatively, use this for stricter rules
-      tseslint.configs.strictTypeChecked,
-      // Optionally, add this for stylistic rules
-      tseslint.configs.stylisticTypeChecked,
+### Prerequisites
 
-      // Other configs...
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
+- Node.js 18+
+- Docker & Docker Compose
+- Telegram Bot Token (from [@BotFather](https://t.me/botfather))
+
+### Setup
+
+1. Clone the repository:
+
+```bash
+git clone https://github.com/yourusername/CryptoScannerBot.git
+cd CryptoScannerBot
 ```
 
-You can also install [eslint-plugin-react-x](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-x) and [eslint-plugin-react-dom](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-dom) for React-specific lint rules:
+2. Create environment file:
 
-```js
-// eslint.config.js
-import reactX from 'eslint-plugin-react-x'
-import reactDom from 'eslint-plugin-react-dom'
-
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
-      // Enable lint rules for React
-      reactX.configs['recommended-typescript'],
-      // Enable lint rules for React DOM
-      reactDom.configs.recommended,
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
+```bash
+# Backend .env
+cd src/backend
+cp .env.example .env
 ```
+
+Add your configuration to `.env`:
+
+```env
+BOT_TOKEN=your_telegram_bot_token
+DATABASE_URL=postgresql://myuser:mypassword@localhost:5432/cryptobot_db
+REDIS_URL=redis://localhost:6379
+```
+
+3. Start Docker services:
+
+```bash
+cd src/backend
+docker-compose up -d
+```
+
+4. Install dependencies and run migrations:
+
+```bash
+npm install
+npx prisma migrate deploy
+```
+
+5. Start the backend:
+
+```bash
+npm run dev
+```
+
+6. (Optional) Start the frontend:
+
+```bash
+cd ../../
+npm install
+npm run dev
+```
+
+### Usage
+
+1. Open your Telegram bot
+2. Send `/start` to begin
+3. Click "🔔 Создать алерт" to create a new price alert
+4. Follow the prompts to select chain, token, and price conditions
+
+## Project Structure
+
+```
+CryptoScannerBot/
+├── src/
+│   ├── backend/           # Node.js backend & Telegram bot
+│   │   ├── src/
+│   │   │   ├── bot/       # Grammy bot handlers
+│   │   │   ├── queues/    # BullMQ workers
+│   │   │   └── services/  # Business logic
+│   │   ├── prisma/        # Database schema & migrations
+│   │   └── docker-compose.yml
+│   └── components/        # React components
+└── README.md
+```
+
+## License
+
+MIT
